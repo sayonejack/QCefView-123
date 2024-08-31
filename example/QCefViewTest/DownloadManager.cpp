@@ -41,6 +41,15 @@ DownloadManager::UpdateDownloadItem(const QSharedPointer<QCefDownloadItem>& item
     m_mapDownloadingItem.remove(item->id());
 }
 
+void DownloadManager::setDownImage2clipboard(const QString &url, const QString &path)
+{
+  downImage2clipboard[url] = path;
+
+  qDebug() << "DownloadManager::setDownImage2clipboard:"
+           << "  url: " << url << "\n"
+           << " size:" << downImage2clipboard.size();
+}
+
 DownloadManager::DownloadManager() {}
 
 DownloadManager::~DownloadManager()

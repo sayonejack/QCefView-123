@@ -1,0 +1,12 @@
+#ifndef QCEFVIEW2H_H
+#define QCEFVIEW2H_H
+
+class QCefView
+{
+  public:
+
+
+
+};
+
+#endif // QCEFVIEW2H_H

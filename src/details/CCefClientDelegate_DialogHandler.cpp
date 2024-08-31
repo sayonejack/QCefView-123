@@ -19,18 +19,19 @@ CCefClientDelegate::onFileDialog(CefRefPtr<CefBrowser> browser,
 #endif
                                  CefRefPtr<CefFileDialogCallback> callback)
 {
-#if defined(Q_OS_LINUX)
-  QMetaObject::invokeMethod(pCefViewPrivate_, [=]() {
-    pCefViewPrivate_->onFileDialog(mode,
-                                   title,
-                                   default_file_path,
-                                   accept_filters,
+#if defined(Q_OS_LINUX) || defined(Q_OS_WIN)
+    QMetaObject::invokeMethod(pCefViewPrivate_, [=]() {
+        pCefViewPrivate_->onFileDialog(mode,
+                                       title,
+                                       default_file_path,
+                                       accept_filters,
 #if CEF_VERSION_MAJOR < 102
-                                   selected_accept_filter,
+                                       selected_accept_filter,
 #endif
-                                   callback);
-  });
-  return true;
+                                       callback);
+    });
+    return true;
 #endif
-  return false;
+
+    return false;
 }

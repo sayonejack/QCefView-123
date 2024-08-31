@@ -14,29 +14,35 @@ CCefClientDelegate::onBeforeContextMenu(CefRefPtr<CefBrowser> browser,
                                         CefRefPtr<CefContextMenuParams> params,
                                         CefRefPtr<CefMenuModel> model)
 {
-  FLog();
+    FLog();
 
-  if (!pCefViewPrivate_)
-    return;
+    if (!pCefViewPrivate_)
+        return;
 
-  // popup browser doesn't involve off-screen rendering
-  if (browser->IsPopup()) {
-    return;
-  }
+    // popup browser doesn't involve off-screen rendering
+    if (browser->IsPopup()) {
+        return;
+    }
 
-  // main browser
-  auto policy = pCefViewPrivate_->q_ptr->contextMenuPolicy();
-  if (Qt::DefaultContextMenu != policy) {
-    // for all non-default value, we clear the menu info to prevent the showing
-    model->Clear();
-    return;
-  }
+    // main browser
+    auto policy = pCefViewPrivate_->q_ptr->contextMenuPolicy();
+    if (Qt::DefaultContextMenu != policy) {
+        // for all non-default value, we clear the menu info to prevent the showing
+        model->Clear();
+        return;
+    }
 
-  if (pCefViewPrivate_->isOSRModeEnabled()) {
-    // OSR mode
-    auto menuData = MenuBuilder::CreateMenuDataFromCefMenu(model.get());
-    QMetaObject::invokeMethod(pCefViewPrivate_, [=]() { pCefViewPrivate_->onBeforeCefContextMenu(menuData); });
-  }
+    if (pCefViewPrivate_->isOSRModeEnabled()) {
+
+        QString LinkUrl = QString::fromStdString(params.get()->GetLinkUrl().ToString());
+        QString imgUrl = QString::fromStdString(params.get()->GetSourceUrl().ToString());
+        QString linkText = QString::fromStdString(params.get()->GetSelectionText().ToString());
+
+        // OSR mode
+        auto menuData = MenuBuilder::CreateMenuDataFromCefMenu(model.get());
+        QMetaObject::invokeMethod(pCefViewPrivate_,
+                                  [=]() { pCefViewPrivate_->onBeforeCefContextMenu(menuData, LinkUrl, linkText, imgUrl); });
+    }
 }
 
 bool
@@ -46,22 +52,22 @@ CCefClientDelegate::onRunContextMenu(CefRefPtr<CefBrowser> browser,
                                      CefRefPtr<CefMenuModel> model,
                                      CefRefPtr<CefRunContextMenuCallback> callback)
 {
-  FLog();
+    FLog();
 
-  // popup browser doesn't involve off-screen rendering
-   if (browser->IsPopup()) {
-     return false;
-   }
+    // popup browser doesn't involve off-screen rendering
+    if (browser->IsPopup()) {
+        return false;
+    }
 
-  if (pCefViewPrivate_->isOSRModeEnabled()) {
-    // OSR mode, create context menu with CEF built-in menu mode and show as customized context menu
-    QPoint pos(params->GetXCoord(), params->GetYCoord());
-    QMetaObject::invokeMethod(pCefViewPrivate_, [=]() { pCefViewPrivate_->onRunCefContextMenu(pos, callback); });
-    return true;
-  } else {
-    // NCW mode, to allow CEF native context menu
-    return false;
-  }
+    if (pCefViewPrivate_->isOSRModeEnabled()) {
+        // OSR mode, create context menu with CEF built-in menu mode and show as customized context menu
+        QPoint pos(params->GetXCoord(), params->GetYCoord());
+        QMetaObject::invokeMethod(pCefViewPrivate_, [=]() { pCefViewPrivate_->onRunCefContextMenu(pos, callback); });
+        return true;
+    } else {
+        // NCW mode, to allow CEF native context menu
+        return false;
+    }
 }
 
 bool
@@ -71,18 +77,33 @@ CCefClientDelegate::onContextMenuCommand(CefRefPtr<CefBrowser> browser,
                                          int command_id,
                                          CefContextMenuHandler::EventFlags event_flags)
 {
-  FLog();
+    FLog();
 
-  return false;
+    if (pCefViewPrivate_->isOSRModeEnabled()) {
+
+        QPoint pos(params.get()->GetXCoord(), params.get()->GetYCoord());
+        QString LinkUrl = QString::fromStdString(params.get()->GetLinkUrl().ToString());
+        QString imgUrl = QString::fromStdString(params.get()->GetSourceUrl().ToString());
+
+        // OSR mode
+        bool result = false;
+        QMetaObject::invokeMethod(
+          pCefViewPrivate_,
+          [=, &result]() { result = pCefViewPrivate_->onContextMenuCommand(command_id, pos, LinkUrl, imgUrl); },
+          Qt::BlockingQueuedConnection);
+        return result;
+    }
+
+    return false;
 }
 
 void
 CCefClientDelegate::onContextMenuDismissed(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame)
 {
-  FLog();
+    FLog();
 
-  if (pCefViewPrivate_->isOSRModeEnabled()) {
-    // OSR mode
-    QMetaObject::invokeMethod(pCefViewPrivate_, [=]() { pCefViewPrivate_->onCefContextMenuDismissed(); });
-  }
+    if (pCefViewPrivate_->isOSRModeEnabled()) {
+        // OSR mode
+        QMetaObject::invokeMethod(pCefViewPrivate_, [=]() { pCefViewPrivate_->onCefContextMenuDismissed(); });
+    }
 }

@@ -3,6 +3,10 @@
 
 #include <QCloseEvent>
 #include <QMainWindow>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QStandardPaths>
 
 #include "ui_MainWindow.h"
 
@@ -15,6 +19,9 @@ class MainWindow : public QMainWindow
   public:
     MainWindow(QWidget* parent = 0);
     ~MainWindow();
+
+  public slots:
+    void OnFileDialog(QStringList& files);
 
   protected:
     void createLeftCefView();
@@ -96,6 +103,17 @@ class MainWindow : public QMainWindow
     void onBtnCallJSCodeClicked();
 
     void onBtnNewBrowserClicked();
+
+  private slots:
+    void on_pushButton_clicked();
+
+    void on_pushButton_2_clicked();
+
+    void on_pushButton_4_clicked();
+
+    void on_pushButton_5_clicked();
+
+    void on_pushButton_7_clicked();
 
   private:
     Ui::MainWindow m_ui;

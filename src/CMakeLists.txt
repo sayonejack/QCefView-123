@@ -41,6 +41,11 @@ source_group(
   FILES ${QCefView_details_SRC_FILES}
 )
 
+file(GLOB_RECURSE QCefView_Filters_SRC_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/../include/Filters/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../include/Filters/*.cpp"
+)
+
 if(USE_SANDBOX AND(OS_WINDOWS OR OS_MACOS))
   add_definitions(-DCEF_USE_SANDBOX)
 endif()
@@ -50,10 +55,13 @@ if(USE_QT_EVENT_LOOP)
 endif()
 
 if(OS_WINDOWS)
+
+
   file(GLOB_RECURSE QCefView_Windows_SRC_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/win/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/win/*.cpp"
   )
+
   source_group(
     TREE "${CMAKE_CURRENT_SOURCE_DIR}/win"
     PREFIX Source
@@ -65,6 +73,7 @@ if(OS_WINDOWS)
     ${QCefView_SRC_FILES}
     ${QCefView_details_SRC_FILES}
     ${QCefView_Windows_SRC_FILES}
+    ${QCefView_Filters_SRC_FILES}
   )
 
   target_compile_definitions(QCefView PRIVATE

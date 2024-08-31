@@ -15,7 +15,7 @@
 CefRefPtr<CefDialogHandler>
 CefViewBrowserClient::GetDialogHandler()
 {
-  return this;
+    return this;
 }
 
 bool
@@ -29,17 +29,18 @@ CefViewBrowserClient::OnFileDialog(CefRefPtr<CefBrowser> browser,
 #endif
                                    CefRefPtr<CefFileDialogCallback> callback)
 {
-  auto delegate = client_delegate_.lock();
-  if (delegate)
-    return delegate->onFileDialog(browser,
-                                  mode,
-                                  title,
-                                  default_file_path,
-                                  accept_filters,
-#if CEF_VERSION_MAJOR < 102
-                                  selected_accept_filter,
-#endif
-                                  callback);
 
-  return false;
+    auto delegate = client_delegate_.lock();
+    if (delegate)
+        return delegate->onFileDialog(browser,
+                                      mode,
+                                      title,
+                                      default_file_path,
+                                      accept_filters,
+#if CEF_VERSION_MAJOR < 102
+                                      selected_accept_filter,
+#endif
+                                      callback);
+
+    return false;
 }

@@ -592,29 +592,29 @@ QCefViewPrivate::onOsrUpdatePopupFrame(const QImage& frame, const QRegion& regio
     emit updateOsrFrame();
 }
 
-void
-QCefViewPrivate::onBeforeCefContextMenu(const MenuBuilder::MenuData& data)
-{
-    Q_Q(QCefView);
+// void
+// QCefViewPrivate::onBeforeCefContextMenu(const MenuBuilder::MenuData& data)
+// {
+//     Q_Q(QCefView);
 
-    // clear previous context menu
-    if (osr.contextMenu_) {
-        osr.contextMenu_->close();
-        osr.contextMenu_->deleteLater();
-        osr.contextMenu_ = nullptr;
-    }
+//     // clear previous context menu
+//     if (osr.contextMenu_) {
+//         osr.contextMenu_->close();
+//         osr.contextMenu_->deleteLater();
+//         osr.contextMenu_ = nullptr;
+//     }
 
-    // create context menu
-    osr.contextMenu_ = new QMenu(q);
-    osr.contextMenu_->setAttribute(Qt::WA_DeleteOnClose);
+//     // create context menu
+//     osr.contextMenu_ = new QMenu(q);
+//     osr.contextMenu_->setAttribute(Qt::WA_DeleteOnClose);
 
-    // connect context menu signals
-    connect(osr.contextMenu_, SIGNAL(triggered(QAction*)), this, SLOT(onContextMenuTriggered(QAction*)));
-    connect(osr.contextMenu_, SIGNAL(destroyed(QObject*)), this, SLOT(onContextMenuDestroyed(QObject*)));
+//     // connect context menu signals
+//     connect(osr.contextMenu_, SIGNAL(triggered(QAction*)), this, SLOT(onContextMenuTriggered(QAction*)));
+//     connect(osr.contextMenu_, SIGNAL(destroyed(QObject*)), this, SLOT(onContextMenuDestroyed(QObject*)));
 
-    // build menu from data
-    MenuBuilder::BuildQtMenuFromMenuData(osr.contextMenu_, data);
-}
+//     // build menu from data
+//     MenuBuilder::BuildQtMenuFromMenuData(osr.contextMenu_, data);
+// }
 
 void
 QCefViewPrivate::onRunCefContextMenu(QPoint pos, CefRefPtr<CefRunContextMenuCallback> callback)
@@ -652,6 +652,25 @@ QCefViewPrivate::onFileDialog(CefBrowserHost::FileDialogMode mode,
                               CefRefPtr<CefFileDialogCallback> callback)
 {
     Q_Q(QCefView);
+
+    auto listFiles = q->onFileDialog();
+    if (listFiles.length() > 0) {
+        // qDebug() << "QCefViewPrivate onFileDialog:" << listFiles;
+
+        std::vector<CefString> file_paths;
+        for (const auto& file : listFiles) {
+            file_paths.push_back(file.toStdString());
+        }
+
+#if CEF_VERSION_MAJOR < 102
+        int index = filters.indexOf(dialog.selectedNameFilter());
+        callback->Continue(index, file_paths);
+#else
+        callback->Continue(file_paths);
+#endif
+
+        return;
+    }
 
     // create dialog and set mode
     QFileDialog dialog(q_ptr);

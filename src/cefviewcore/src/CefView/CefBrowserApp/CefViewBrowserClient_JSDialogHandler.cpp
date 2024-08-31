@@ -15,7 +15,7 @@
 CefRefPtr<CefJSDialogHandler>
 CefViewBrowserClient::GetJSDialogHandler()
 {
-  return this;
+    return this;
 }
 
 bool
@@ -27,9 +27,15 @@ CefViewBrowserClient::OnJSDialog(CefRefPtr<CefBrowser> browser,
                                  CefRefPtr<CefJSDialogCallback> callback,
                                  bool& suppress_message)
 {
-  CEF_REQUIRE_UI_THREAD();
+    CEF_REQUIRE_UI_THREAD();
 
-  return false;
+    auto delegate = client_delegate_.lock();
+    if (delegate) {
+        return delegate->onJSDialog(
+          browser, origin_url, dialog_type, message_text, default_prompt_text, callback, suppress_message);
+    }
+
+    return false;
 }
 
 bool
@@ -38,13 +44,18 @@ CefViewBrowserClient::OnBeforeUnloadDialog(CefRefPtr<CefBrowser> browser,
                                            bool is_reload,
                                            CefRefPtr<CefJSDialogCallback> callback)
 {
-  CEF_REQUIRE_UI_THREAD();
+    CEF_REQUIRE_UI_THREAD();
 
-  return false;
+    // auto delegate = client_delegate_.lock();
+    // if (delegate) {
+    //     return delegate->onBeforeUnloadDialog(browser, message_text, is_reload, callback);
+    // }
+
+    return false;
 }
 
 void
 CefViewBrowserClient::OnResetDialogState(CefRefPtr<CefBrowser> browser)
 {
-  CEF_REQUIRE_UI_THREAD();
+    CEF_REQUIRE_UI_THREAD();
 }

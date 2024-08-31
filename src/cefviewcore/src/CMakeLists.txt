@@ -1,4 +1,5 @@
-set(CefViewCore_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../src/cefviewcore/src/")
+set(CefView_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../")
+set(CefViewCore_SOURCE_DIR "${CefView_ROOT_DIR}/src/cefviewcore/src")
 
 message(STATUS "CefViewCore_SOURCE_DIR: ${CefViewCore_SOURCE_DIR}")
 
@@ -39,10 +40,16 @@ add_library(CefViewCore STATIC
   ${CefViewCore_SHARED_SRC_FILES}
   ${CefViewCore_INCLUDE_FILES}
   ${CefViewCore_SRC_FILES}
+  "${CefView_ROOT_DIR}/include/Filters/AppendResponseFilter.h"
+  "${CefView_ROOT_DIR}/include/Filters/AppendResponseFilter.cpp"
+  "${CefView_ROOT_DIR}/include/Filters/MemoryStreamResponseFilter.h"
+  "${CefView_ROOT_DIR}/include/Filters/MemoryStreamResponseFilter.cpp"
+  "${CefView_ROOT_DIR}/include/Filters/IResponseFilter.h"
 )
 
 target_include_directories(CefViewCore PRIVATE
   ${CefViewCore_INCLUDE_PATH}
+  "${CefView_ROOT_DIR}/include"
 )
 
 # ADD_LOGICAL_TARGET(libcef_lib

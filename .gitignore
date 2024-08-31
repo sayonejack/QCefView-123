@@ -10,3 +10,4 @@ docs/doxygen/xml
 out
 scripts/doxygen/xml
 include/QCefView_global.h
+.zip

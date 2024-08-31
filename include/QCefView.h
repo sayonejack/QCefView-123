@@ -1,4 +1,4 @@
-﻿/*
+/*
  * File: QCefView.h
  * Project: QCefView
  * Created: 29th March 2016
@@ -22,6 +22,8 @@
 #include <QCefEvent.h>
 #include <QCefQuery.h>
 #include <QCefSetting.h>
+
+#include <Filters/IResponseFilter.h>
 
 class QCefViewPrivate;
 
@@ -625,6 +627,63 @@ class QCEFVIEW_EXPORT QCefView : public QWidget
     /// </summary>
     void contextMenuEvent(QContextMenuEvent* event) override;
 #pragma endregion
+
+#pragma region QCefView_Ext
+
+  protected:
+    virtual bool onContextMenuCommand(int command_id, const QPoint& pos, const QString& LinkUrl, const QString& imgUrl);
+
+    virtual void onBeforeContextMenu(QList<QPair<QString, int>>& data,
+                                     const QString& LinkUrl,
+                                     const QString& linkText,
+                                     const QString& imgUrl);
+    virtual void onCefContextMenuDismissed();
+    virtual void onResourceLoadComplete(const QString& url,
+                                        const QString& method,
+                                        const int& statusCode,
+                                        const QString& statusText,
+                                        const int& status,
+                                        const int& received_content_length);
+
+    virtual QList<QString> onFileDialog();
+
+    // bool onBeforeUnloadDialog();
+
+    virtual bool onJSDialog();
+
+    virtual Filters::IResponseFilter* getResourceResponseFilter(const QString& url);
+
+    virtual int onBeforeResourceLoad(QString& url,
+                                     QString& postDataStr,
+                                     QString& referer,
+                                     const QString& method,
+                                     const int& ResourceType);
+
+  public:
+    void showDevTools(const QPoint& point);
+    void startDownload(const QString& url);
+    void downloadImage(const QString& url);
+    bool setCookie(const QString& url,
+                   const QString& name,
+                   const QString& value,
+                   const QString& domain,
+                   const QString& path,
+                   const bool& httpOnly,
+                   const bool& secure,
+                   const QDateTime& expirationDate);
+    QString exportCookies(const QString& url = QString());
+    QString getMainUrl();
+    bool LoadRequest(const QString& url,
+                     const QString& postDataStr,
+                     const QString& referer,
+                     const QString& contentType,
+                     const QString& origin);
+    QString getHtml();
+    void SendMouseClickEvent(int x, int y, Qt::MouseButton button, bool mouseUp, int clickCount);
+    void SendKeyEvent(int winkey, bool iskeydown = true, int modifiers = 0, const QString& text = QString());
+    void SendMouseMoveEvent(int x, int y, bool mouseLeave);
+
+#pragma endregion QCefView_Ext
 };
 
 #endif // QCEFVIEW_H

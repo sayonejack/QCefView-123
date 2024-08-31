@@ -252,7 +252,7 @@ class QCefViewPrivate : public QObject
 
     void onOsrUpdatePopupFrame(const QImage& frame, const QRegion& region);
 
-    void onBeforeCefContextMenu(const MenuBuilder::MenuData& data);
+    // void onBeforeCefContextMenu(const MenuBuilder::MenuData& data);
 
     void onRunCefContextMenu(QPoint pos, CefRefPtr<CefRunContextMenuCallback> callback);
 
@@ -343,4 +343,69 @@ class QCefViewPrivate : public QObject
     bool sendEventNotifyMessage(int64_t frameId, const QString& name, const QVariantList& args);
 
     bool setPreference(const QString& name, const QVariant& value, const QString& error);
+
+#pragma region QCefViewPrivate_Ext
+
+  public:
+    QString getMainUrl();
+
+    bool LoadRequest(const QString& url,
+                     const QString& postDataStr = "",
+                     const QString& referer = "",
+                     const QString& contentType = "",
+                     const QString& origin = "");
+
+    QString getHtml();
+
+    void SendMouseClickEvent(int x, int y, Qt::MouseButton button, bool mouseUp, int clickCount);
+
+    void SendKeyEvent(int key, bool iskeydown, int modifiers, const QString& text);
+
+    void SendMouseMoveEvent(int x, int y, bool mouseLeave);
+
+    bool setCookie(const QString& url,
+                   const QString& name,
+                   const QString& value,
+                   const QString& domain,
+                   const QString& path,
+                   const bool& httpOnly,
+                   const bool& secure,
+                   const QDateTime& expirationDate);
+
+    QString exportCookies(const QString& url);
+
+    void showDevTools(const QPoint& point);
+
+    void startDownload(const QString& url);
+
+    void downloadImage(const QString& url);
+
+  protected:
+    void onBeforeCefContextMenu(const MenuBuilder::MenuData& data,
+                                const QString& LinkUrl,
+                                const QString& linkText,
+                                const QString& imgUrl);
+
+    // bool onBeforeUnloadDialog();
+
+    bool onJSDialog();
+
+    bool onContextMenuCommand(int command_id, const QPoint& pos, const QString& LinkUrl, const QString& imgUrl);
+
+    Filters::IResponseFilter* getResourceResponseFilter(const QString& url);
+
+    int onBeforeResourceLoad(QString& url,
+                             QString& postDataStr,
+                             QString& referer,
+                             const QString& method,
+                             const int& ResourceType);
+
+    void onResourceLoadComplete(const QString& url,
+                                const QString& method,
+                                const int& statusCode,
+                                const QString& statusText,
+                                const int& status,
+                                const int& received_content_length);
+
+#pragma endregion Ext
 };

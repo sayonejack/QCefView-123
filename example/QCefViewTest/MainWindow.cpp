@@ -20,6 +20,9 @@ MainWindow::MainWindow(QWidget* parent)
 {
     m_ui.setupUi(this);
 
+    // auto policy = m_ui.verticalSpacer->sizePolicy();
+    // policy.setVerticalPolicy(QSizePolicy::Expanding);
+
 #ifdef Q_OS_MACOS
     this->m_ui.nativeContainer->setContentsMargins(0, 28, 0, 0);
 #endif
@@ -69,12 +72,45 @@ MainWindow::createLeftCefView()
 
     // connect the cefQueryRequest to the slot
     connect(m_pLeftCefViewWidget, &QCefView::cefQueryRequest, this, &MainWindow::onQCefQueryRequest);
-    connect(m_pLeftCefViewWidget, &QCefView::reportJavascriptResult, this, &MainWindow::onJavascriptResult);
+
+    // connect(m_pLeftCefViewWidget, &QCefView::reportJavascriptResult, this, &MainWindow::onJavascriptResult);
+
     connect(m_pLeftCefViewWidget, &QCefView::loadStart, this, &MainWindow::onLoadStart);
     connect(m_pLeftCefViewWidget, &QCefView::loadEnd, this, &MainWindow::onLoadEnd);
     connect(m_pLeftCefViewWidget, &QCefView::loadError, this, &MainWindow::onLoadError);
 
+    connect(m_pLeftCefViewWidget, SIGNAL(OnFileDialog(QStringList&)), this, SLOT(OnFileDialog(QStringList&)));
+
     m_ui.leftCefViewContainer->layout()->addWidget(m_pLeftCefViewWidget);
+}
+
+void
+MainWindow::OnFileDialog(QStringList& files)
+{
+    try {
+
+        // 获取系统下载路径
+        QString path = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
+        // 获取三张图片
+        QDir dir(path);
+        QStringList filters;
+        filters << "*.jpg" << "*.png";
+        dir.setNameFilters(filters);
+        QFileInfoList list = dir.entryInfoList();
+        for (int i = 0; i < list.size(); ++i) {
+            files.append(list.at(i).absoluteFilePath());
+            if (files.size() >= 3) {
+                break;
+            }
+        }
+
+        // path = path + "/1.jpg";
+        // path = QDir::toNativeSeparators(path);
+        // files.append(path);
+
+    } catch (const std::exception& ex) {
+        qDebug() << ex.what();
+    }
 }
 
 void
@@ -101,7 +137,10 @@ MainWindow::createRightCefView()
     // m_pRightCefViewWidget = new CefViewWidget("https://cefview.github.io/QCefView/", &setting, this);
 
     //
-    m_pRightCefViewWidget = new CefViewWidget("https://fastest.fish/test-files", &setting, this);
+    m_pRightCefViewWidget = new CefViewWidget("https://www.baidu.com", &setting, this);
+    m_pRightCefViewWidget->listResponseFilterWords.append("/sugrec?");
+
+    // m_pRightCefViewWidget = new CefViewWidget("https://fastest.fish/test-files", &setting, this);
 
     //
     // m_pRightCefViewWidget = new CefViewWidget("https://mdn.dev/", &setting, this);
@@ -122,8 +161,6 @@ MainWindow::createRightCefView()
     // m_pRightCefViewWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
     // m_pRightCefViewWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     // m_pRightCefViewWidget->setContextMenuPolicy(Qt::PreventContextMenu);
-
-    //*/
 }
 
 void
@@ -202,7 +239,7 @@ MainWindow::onJavascriptResult(int browserId,
                                const QVariant& result)
 {
     auto jsonValue = QJsonDocument::fromVariant(result);
-    auto jsonString = QString(jsonValue.toJson());
+    auto jsonString = QString(jsonValue.toVariant().toString());
 
     QString title("Javascript result notification");
     QString text = QString("Context: %1\r\nResult in JSON format:\r\n%2").arg(context).arg(jsonString);
@@ -338,3 +375,114 @@ MainWindow::setupWindow()
 {
 }
 #endif
+
+void
+MainWindow::on_pushButton_clicked()
+{
+
+    m_ui.pushButton->setEnabled(false);
+
+    auto td = QThread::create([=]() {
+        QString jstr = R"(
+var data=[];
+var es=document.getElementsByTagName('input');
+for(var i=0;i<es.length;i++){
+  var e=es[i];
+ if(e.type=='file'){
+  e.scrollIntoView(true);
+  // e.click();
+  var r = e.getBoundingClientRect();
+  data = [r.left, r.top, e.clientWidth, e.clientHeight, e.innerText];
+  break;
+ }
+}
+return JSON.stringify(data);
+)";
+
+        jstr = m_pLeftCefViewWidget->EvaluateJavascript(jstr.trimmed());
+        QJsonDocument doc = QJsonDocument::fromJson(jstr.toUtf8());
+
+        QMetaObject::invokeMethod(this, [=]() {
+            if (doc.isArray()) {
+                auto arr = doc.array();
+                if (arr.size() > 2) {
+                    auto x = arr.at(0).toDouble();
+                    auto y = arr.at(1).toDouble();
+                    auto w = arr.at(2).toDouble();
+                    auto h = arr.at(3).toDouble();
+
+                    m_pLeftCefViewWidget->SendMouseClickEvent(x + w / 2, y + h / 2, Qt::LeftButton, false, 1);
+                    m_pLeftCefViewWidget->SendMouseClickEvent(x + w / 2, y + h / 2, Qt::LeftButton, true, 1);
+
+                    qDebug() << "click at:" << (x + w / 2) << (y + h / 2) << "x:" << x << "y:" << y << "w:" << w << "h:" << h;
+                }
+
+                // QMessageBox::information(this, "Result", jstr);
+            }
+
+            m_ui.pushButton->setEnabled(true);
+        });
+    });
+
+    connect(td, &QThread::finished, td, &QThread::deleteLater);
+    td->start();
+}
+
+void
+MainWindow::on_pushButton_2_clicked()
+{
+    auto res = m_pRightCefViewWidget->getResponses();
+
+    QString rs;
+    for (auto& item : res) {
+        rs += item.first + " : " + QString::number(item.second.length()) + "\n";
+    }
+
+    QMessageBox::information(
+      this, QString::number(rs.count()) + "-" + QString::number(m_pLeftCefViewWidget->listResponse.count()), rs);
+}
+
+void
+MainWindow::on_pushButton_4_clicked()
+{
+    auto rs = m_pRightCefViewWidget->getHtml();
+
+    QMessageBox::information(this, "html", QString::number(rs.length()));
+}
+
+#include <windows.h>
+
+void
+MainWindow::on_pushButton_5_clicked()
+{
+    auto x = 250;
+    auto y = 250;
+
+    auto cw = m_pLeftCefViewWidget;
+
+    cw->SendMouseMoveEvent(x, y, false);
+
+    cw->SendMouseClickEvent(x, y, Qt::LeftButton, false, 1);
+    cw->SendMouseClickEvent(x, y, Qt::LeftButton, true, 1);
+
+    cw->setFocus();
+
+    cw->SendKeyEvent(VK_BACK, true);
+    cw->SendKeyEvent(VK_BACK, false);
+
+    cw->SendKeyEvent(0x30, true);
+    cw->SendKeyEvent(0x30, false);
+
+    cw->SendKeyEvent(0x31, true);
+    cw->SendKeyEvent(0x31, false);
+
+    cw->SendMouseMoveEvent(x, y, true);
+}
+
+void
+MainWindow::on_pushButton_7_clicked()
+{
+    auto rs = m_pRightCefViewWidget->exportCookies();
+
+    QMessageBox::information(this, "cookie", rs);
+}

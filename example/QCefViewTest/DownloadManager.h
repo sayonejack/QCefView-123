@@ -4,23 +4,27 @@
 
 #include <QMap>
 #include <QSharedPointer>
+#include <QDebug>
 
 #include <QCefDownloadItem.h>
 
 class DownloadManager
 {
-public:
-  static DownloadManager& getInstance();
+  public:
+    static DownloadManager& getInstance();
 
-  void AddNewDownloadItem(const QSharedPointer<QCefDownloadItem>& item);
+    void AddNewDownloadItem(const QSharedPointer<QCefDownloadItem>& item);
 
-  void UpdateDownloadItem(const QSharedPointer<QCefDownloadItem>& item);
+    void UpdateDownloadItem(const QSharedPointer<QCefDownloadItem>& item);
 
-private:
-  DownloadManager();
-  ~DownloadManager();
+    QMap<QString, QString> downImage2clipboard;
+    void setDownImage2clipboard(const QString& url, const QString& path = "");
 
-  QMap<qint32, QSharedPointer<QCefDownloadItem>> m_mapDownloadingItem;
+  private:
+    DownloadManager();
+    ~DownloadManager();
+
+    QMap<qint32, QSharedPointer<QCefDownloadItem>> m_mapDownloadingItem;
 };
 
 #endif

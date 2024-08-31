@@ -254,6 +254,63 @@ class CefViewBrowserClientDelegateInterface
     }
     virtual void onVirtualKeyboardRequested(CefRefPtr<CefBrowser> browser, CefRenderHandler::TextInputMode input_mode) {}
 #pragma endregion
+
+#pragma region JSDialogHandler
+
+    virtual bool onJSDialog(CefRefPtr<CefBrowser> browser,
+                            const CefString& origin_url,
+                            CefJSDialogHandler::JSDialogType dialog_type,
+                            const CefString& message_text,
+                            const CefString& default_prompt_text,
+                            CefRefPtr<CefJSDialogCallback> callback,
+                            bool& suppress_message)
+    {
+        return false;
+    }
+
+    virtual bool onBeforeUnloadDialog(CefRefPtr<CefBrowser> browser,
+                                      const CefString& message_text,
+                                      bool is_reload,
+                                      CefRefPtr<CefJSDialogCallback> callback)
+    {
+        return false;
+    }
+
+#pragma endregion
+
+#pragma region ResourceRequestHandler
+
+    virtual CefRefPtr<CefResponseFilter> getResourceResponseFilter(CefRefPtr<CefBrowser> browser,
+                                                                   CefRefPtr<CefFrame> frame,
+                                                                   CefRefPtr<CefRequest> request,
+                                                                   CefRefPtr<CefResponse> response)
+    {
+        return nullptr;
+    }
+
+    virtual CefResourceRequestHandler::ReturnValue onBeforeResourceLoad(CefRefPtr<CefBrowser> browser,
+                                                                        CefRefPtr<CefFrame> frame,
+                                                                        CefRefPtr<CefRequest> request,
+#if CEF_VERSION_MAJOR > 91
+                                                                        CefRefPtr<CefCallback> callback
+#else
+                                                                        CefRefPtr<CefRequestCallback> callback
+#endif
+    )
+    {
+        return CefResourceRequestHandler::ReturnValue::RV_CONTINUE;
+    }
+
+    virtual void onResourceLoadComplete(CefRefPtr<CefBrowser> browser,
+                                        CefRefPtr<CefFrame> frame,
+                                        CefRefPtr<CefRequest> request,
+                                        CefRefPtr<CefResponse> response,
+                                        CefResourceRequestHandler::URLRequestStatus status,
+                                        int64_t received_content_length)
+    {
+    }
+
+#pragma endregion
 };
 
 #endif

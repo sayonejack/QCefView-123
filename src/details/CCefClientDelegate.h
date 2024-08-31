@@ -218,4 +218,44 @@ class CCefClientDelegate
                                         const CefString& selected_text,
                                         const CefRange& selected_range) override;
     virtual void onVirtualKeyboardRequested(CefRefPtr<CefBrowser> browser, CefRenderHandler::TextInputMode input_mode) override;
+
+#pragma region CCefClientDelegate_ResourceRequestHandler
+
+    virtual CefResourceRequestHandler::ReturnValue onBeforeResourceLoad(CefRefPtr<CefBrowser> browser,
+                                                                        CefRefPtr<CefFrame> frame,
+                                                                        CefRefPtr<CefRequest> request,
+#if CEF_VERSION_MAJOR > 91
+                                                                        CefRefPtr<CefCallback> callback
+#else
+                                                                        CefRefPtr<CefRequestCallback> callback
+#endif
+                                                                        ) override;
+
+    virtual CefRefPtr<CefResponseFilter> getResourceResponseFilter(CefRefPtr<CefBrowser> browser,
+                                                                   CefRefPtr<CefFrame> frame,
+                                                                   CefRefPtr<CefRequest> request,
+                                                                   CefRefPtr<CefResponse> response) override;
+    virtual void onResourceLoadComplete(CefRefPtr<CefBrowser> browser,
+                                        CefRefPtr<CefFrame> frame,
+                                        CefRefPtr<CefRequest> request,
+                                        CefRefPtr<CefResponse> response,
+                                        CefResourceRequestHandler::URLRequestStatus status,
+                                        int64_t received_content_length) override;
+
+    // JsDialogHandler
+
+    virtual bool onJSDialog(CefRefPtr<CefBrowser> browser,
+                            const CefString& origin_url,
+                            CefJSDialogHandler::JSDialogType dialog_type,
+                            const CefString& message_text,
+                            const CefString& default_prompt_text,
+                            CefRefPtr<CefJSDialogCallback> callback,
+                            bool& suppress_message) override;
+
+    // virtual bool onBeforeUnloadDialog(CefRefPtr<CefBrowser> browser,
+    //                                   const CefString& message_text,
+    //                                   bool is_reload,
+    //                                   CefRefPtr<CefJSDialogCallback> callback) override;
+
+#pragma endregion CCefClientDelegate_ResourceRequestHandler
 };
