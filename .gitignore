@@ -1,0 +1,12 @@
+.vscode
+.build
+.build.*
+/build/
+dep/cef
+output
+.DS_Store
+CMakeLists.txt.user
+docs/doxygen/xml
+out
+scripts/doxygen/xml
+include/QCefView_global.h
